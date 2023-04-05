@@ -6,4 +6,9 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 
+APP_ID = os.getenv("APP_ID")
+APP_SECRET = os.getenv("APP_SECRET")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
+LONG_LIVED_USER_ACCESS_TOKEN = os.getenv("LONG_LIVED_USER_ACCESS_TOKEN")
+
+PAGE_ID = os.getenv("PAGE_ID")

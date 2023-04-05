@@ -41,3 +41,33 @@ def hook_from_facebook(request: Request):
 async def hook_to_facebook(request: Request):
     logger.info("Got new message - %s", pformat(await request.json()))
     return await request.json()
+
+@app.get("/token")
+async def get_access_token():
+    response = requests.get(
+        f'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id={settings.APP_ID}&client_secret={settings.APP_SECRET}&fb_exchange_token={settings.PAGE_ACCESS_TOKEN}',
+    )
+    if response.status_code == 200:
+        return response.json()
+    raise HTTPException(status_code=401, detail="Not authorized")
+
+
+@app.post("/send-message")
+async def send_message(recipient_id: int, message: str):
+    headers = {'content-type':  'application/json'}
+    data = {
+        "recipient": {
+            "id": str(recipient_id)
+        },
+        "messaging_type": "RESPONSE",
+        "message": {
+            "text": message,
+        },
+        "access_token": settings.LONG_LIVED_USER_ACCESS_TOKEN
+    }
+    response = requests.post(
+        f"https://graph.facebook.com/v15.0/{int(settings.PAGE_ID)}/messages", data=json.dumps(data), headers=headers
+    )
+    if response.status_code == 200:
+        return response.json()
+    raise HTTPException(response.status_code, response.json())
