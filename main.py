@@ -6,6 +6,8 @@ from pprint import pformat
 
 import requests
 from fastapi import FastAPI, HTTPException, Request
+from messengerapi import SendApi
+from pyfacebook import GraphAPI
 
 import settings
 
@@ -37,15 +39,27 @@ def hook_from_facebook(request: Request):
             raise HTTPException(status_code=403, detail="Authorization for webhook failed")
     return {}
 
+
 @app.post("/webhook")
 async def hook_to_facebook(request: Request):
     logger.info("Got new message - %s", pformat(await request.json()))
     return await request.json()
 
+
+@app.get("/long-lived-token")
+async def get_long_lived_access_token():
+    response = requests.get(
+        f'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id={settings.APP_ID}&client_secret={settings.APP_SECRET}&fb_exchange_token={settings.PAGE_ACCESS_TOKEN}',
+    )
+    if response.status_code == 200:
+        return response.json()
+    raise HTTPException(status_code=401, detail="Not authorized")
+
+
 @app.get("/token")
 async def get_access_token():
     response = requests.get(
-        f'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id={settings.APP_ID}&client_secret={settings.APP_SECRET}&fb_exchange_token={settings.PAGE_ACCESS_TOKEN}',
+        f'https://graph.facebook.com/oauth/access_token?grant_type=client_credentials&client_id={settings.APP_ID}&client_secret={settings.APP_SECRET}&fb_exchange_token={settings.PAGE_ACCESS_TOKEN}',
     )
     if response.status_code == 200:
         return response.json()
@@ -63,10 +77,10 @@ async def send_message(recipient_id: int, message: str):
         "message": {
             "text": message,
         },
-        "access_token": settings.LONG_LIVED_USER_ACCESS_TOKEN
+        "access_token": f"{settings.LONG_LIVED_USER_ACCESS_TOKEN}"
     }
     response = requests.post(
-        f"https://graph.facebook.com/v15.0/{int(settings.PAGE_ID)}/messages", data=json.dumps(data), headers=headers
+        f"https://graph.facebook.com/v14.0/{int(settings.PAGE_ID)}/messages", data=json.dumps(data), headers=headers
     )
     if response.status_code == 200:
         return response.json()
