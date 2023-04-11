@@ -80,7 +80,7 @@ async def send_message(recipient_id: int, message: str):
         "access_token": f"{settings.LONG_LIVED_USER_ACCESS_TOKEN}"
     }
     response = requests.post(
-        f"https://graph.facebook.com/v14.0/{int(settings.PAGE_ID)}/messages", data=json.dumps(data), headers=headers
+        f"https://graph.facebook.com/v16.0/{int(settings.PAGE_ID)}/messages", data=json.dumps(data), headers=headers
     )
     if response.status_code == 200:
         return response.json()
