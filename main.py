@@ -85,3 +85,16 @@ async def send_message(recipient_id: int, message: str):
     if response.status_code == 200:
         return response.json()
     raise HTTPException(response.status_code, response.json())
+
+
+@app.post("/get-profile")
+async def get_profile(recipient_id: int):
+    headers = {'content-type':  'application/json'}
+    response = requests.get(
+        f"https://graph.facebook.com/v16.0/{recipient_id}?fields=id,name,profile_pic"
+        f"&access_token={settings.LONG_LIVED_USER_ACCESS_TOKEN}",
+        headers=headers
+    )
+    if response.status_code == 200:
+        return response.json()
+    raise HTTPException(response.status_code, response.json())
